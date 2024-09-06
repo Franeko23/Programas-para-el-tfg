@@ -1,0 +1,687 @@
+#define Prueba_Selector_cxx
+
+// The class definition in Prueba_Selector.h has been generated automatically
+
+// by the ROOT utility TTree::MakeSelector(). This class is derived
+
+// from the ROOT class TSelector. For more information on the TSelector
+
+// framework see $ROOTSYS/README/README.SELECTOR or the ROOT User Manual.
+
+
+
+
+
+// The following methods are defined in this file:
+
+//    Begin():        called every time a loop on the tree starts,
+
+//                    a convenient place to create your histograms.
+
+//    SlaveBegin():   called after Begin(), when on PROOF called only on the
+
+//                    slave servers.
+
+//    Process():      called for each event, in this function you decide what
+
+//                    to read and fill your histograms.
+
+//    SlaveTerminate: called at the end of the loop on the tree, when on PROOF
+
+//                    called only on the slave servers.
+
+//    Terminate():    called at the end of the loop on the tree,
+
+//                    a convenient place to draw/fit your histograms.
+
+//
+
+// To use this file, try the following session on your Tree T:
+
+//
+
+// root> T->Process("Prueba_Selector.C")
+
+// root> T->Process("Prueba_Selector.C","some options")
+
+// root> T->Process("Prueba_Selector.C+")
+
+//
+
+
+
+
+
+#include "Prueba_Selector.h" //incluye un archivo con terminacion .h que supongo que tendrá varias funciones y clasesss que se utilizarán
+
+#include <TH2.h> 
+
+#include <TStyle.h>  //Lbreria para el estilo de las graficas.
+
+
+
+#include <TH2.h>  //Parra representar histogramas en 2-D
+
+#include <TH3.h>  // Para representar histogramas en 3-D
+
+#include <TStyle.h> //lo vuelve a repetir (fallo)
+
+
+
+
+
+#include "TMath.h" //biblioteca matemática que proporciona una variedad de funciones y constantes matemáticas útiles para el análisis de datos en ROOT.
+
+#include <TCanvas.h> //Permite representar funciones, histogramas...   es parte de root es (lienzo)
+
+#include <list>
+
+#include <cassert> //Pdemos trabajar con la suposicion assert que nos dicec que en caso de ser verdadera continua con el progrma en caso de que no me para el programa.
+
+#include <fstream>
+
+#include <iostream> //para trabajar con ficheros
+
+#include <stdlib.h>
+
+#include <stdio.h>
+
+#include <vector>
+
+#include <tuple>
+
+#include <utility>
+
+
+
+using namespace std;
+
+
+
+/*
+
+ BLOCK 1.- Definition of general variables
+
+           --> Positions: x,y,z --> ii,ij,ik     
+
+           --> Number of hits --> pads that have recorded signal 
+
+           --> constant variables: maximun number of hits and total number of chambers   (numero maximo de hit que nos permite tener por panel y el numero  de paneles que seran 49.
+
+*/
+
+
+
+int const granulation = 96; //granulacion de los pads.
+
+int const NChambers=49;//Total number of chambers. Actually they are 48.
+
+int const max_nhit=3000;// No interest in event with more than 3 khits. They will be good candidates for noise (granulaacion por panel = 9216 pads)
+
+
+
+//int ii_evt_tot,ientry,ievt_pions,ievt_cosmics,ii_evt_cosmics,ii_evt_pions;
+
+
+
+int NChamb_signal=0;  //inicializa lo que entiendo que es el numero de señales por panel o el numero de paneles ???????????
+
+double hitk[NChambers];  //lista de numeros decimales entiendo que los hit pero nooo se por que lo mete en un array.
+
+double hitx[granulation];  
+
+double hity[granulation];  
+
+double nhitk;  		
+
+double nhitx;
+
+double nhity;
+
+
+
+void Prueba_Selector::Begin(TTree * /*tree*/)  //ni idea ????????????
+
+{
+
+   // The Begin() function is called at the start of the query.
+
+   // When running with PROOF Begin() is only called on the client.
+
+   // The tree argument is deprecated (on PROOF 0 is passed).
+
+
+
+   TString option = GetOption();
+
+}
+
+
+
+void Prueba_Selector::SlaveBegin(TTree * /*tree*/)  //ni idea ???????????????? ¿Que es un TTree?
+
+{
+
+   // The SlaveBegin() function is called after the Begin() function.
+
+   // When running with PROOF SlaveBegin() is called on each slave server.
+
+   // The tree argument is deprecated (on PROOF 0 is passed).
+
+
+
+   TString option = GetOption();
+
+
+
+}
+
+
+
+Bool_t Prueba_Selector::Process(Long64_t entry)
+
+{
+
+   // The Process() function is called for each entry in the tree (or possibly
+
+   // keyed object in the case of PROOF) to be processed. The entry argument
+
+   // specifies which entry in the currently loaded tree is to be processed.
+
+   // When processing keyed objects with PROOF, the object is already loaded
+
+   // and is available via the fObject pointer.
+
+   //
+
+   // This function should contain the \"body\" of the analysis. It can contain
+
+   // simple or elaborate selection criteria, run algorithms on the data
+
+   // of the event and typically fill histograms.
+
+   //
+
+   // The processing can be stopped by calling Abort().
+
+   //
+
+   // Use fStatus to set the return value of TTree::Process().
+
+   //
+
+   // The return value is currently not used.
+
+
+
+
+
+   fReader.SetLocalEntry(entry); 
+
+   
+
+   /*##########################
+
+     ESTUDIO DE HITS POR EVENTO
+
+     ########################## */
+
+   for(int i = 0; i < 10; i++)
+
+   {
+
+   
+
+   if(*Nhit < max_nhit) cout << "  Event " << *eventNr << " Nhit " << *Nhit << endl; 
+
+   
+
+   vector<vector<vector<int>>> event(NChambers, vector<vector<int>>(granulation, vector<int>(granulation, 0))); 
+
+   
+
+   
+
+   /* ##############################
+
+      INICIALIZACION DE LAS MATRICES 
+
+      ############################## */
+
+   
+
+   for(int ik = 0; ik < NChambers; ik++)
+
+   {
+
+   	for(int ii = 0; ii < granulation; ii++)
+
+   	{
+
+   		for(int ij = 0; ij < granulation; ij++)
+
+   		{
+
+   			event[ik][ii][ij] = 0;
+
+   		}
+
+   	}
+
+   }
+
+   
+
+   /*#########################################
+
+     ESTUDIO DEL NUMERO DE HITS POR CADA PLANO
+
+     ######################################### */
+
+   
+
+   for(int ik=0; ik < NChambers; ik++)  
+
+   {
+
+      hitk[ik]=0; 
+
+   }   
+
+
+
+   nhitk=0; 
+
+ 
+
+   for(int ishit=0; ishit < *Nhit; ishit++)
+
+   {
+
+      int ik = DHCALEvent_K[ishit];      
+
+            
+
+      hitk[ik]++; 
+
+      
+
+      nhitk = hitk[ik];
+
+      
+
+   }   
+
+   
+
+     for(int ik = 0; ik < NChambers; ik++) 
+
+   {
+
+      cout << " Camara " << ik << " numero de hits " << hitk[ik] << endl;
+
+   }  
+
+   
+
+   /* #######################################################
+
+      CONSTRUCCION DE LAS MATRICES QUE REPRESENTAN LOS PLANOS
+
+      ####################################################### */
+
+   
+
+   for(int hit = 0; hit < *Nhit; hit++)
+
+   {
+
+   	int ik = DHCALEvent_K[hit];
+
+   	
+
+   	int ii = DHCALEvent_I[hit];
+
+   	
+
+   	int ij = DHCALEvent_J[hit];
+
+   	
+
+   	event[ik][ii][ij] = 1;
+
+   }
+
+   
+
+  
+
+   	for(int ii = 0; ii < granulation; ii++)
+
+   	{
+
+   		for(int ij = 0; ij < granulation; ij++)
+
+   		{
+
+   			
+
+   			cout << event[1][ii][ij] << ' ';
+
+   		}
+
+   		cout <<'\n';
+
+   	}
+
+   	cout <<'\n';
+
+ 
+
+   
+
+   /* ###################
+
+      BUSQUEDA DE CLUSTER
+
+      ################### */
+
+   
+
+   vector<vector<vector<tuple<int, int, int>>>> allClusters;
+
+
+
+    for (int matrixIndex = 0; matrixIndex < event.size(); ++matrixIndex) 
+
+    {
+
+        const auto& matrix = event[matrixIndex];
+
+        
+
+        vector<vector<tuple<int, int, int>>> clusters;
+
+    
+
+        vector<vector<bool>> visited(matrix.size(), vector<bool>(matrix[0].size(), false));
+
+
+
+        // Recorrer cada punto en la matriz.  
+
+        
+
+        for (int i = 0; i < matrix.size(); ++i)
+
+        {
+
+        	for (int j = 0; j < matrix[0].size(); ++j) 
+
+       		{
+
+            		// Si el punto no está visitado y es un "1", iniciar búsqueda de vecinos.
+
+            
+
+            		if (!visited[i][j] && matrix[i][j] == 1) 
+
+            		{
+
+                	vector<tuple<int, int, int>> cluster;
+
+                
+
+                	cluster.push_back(make_tuple(matrixIndex, i, j));
+
+                
+
+                	visited[i][j] = true;
+
+
+
+                	// Búsqueda de vecindario usando DFS (Depth-First Search).
+
+                	for (int k = 0; k < cluster.size(); ++k) 
+
+                	{
+
+                    		int row = get<1>(cluster[k]);
+
+                    
+
+                    		int col = get<2>(cluster[k]);
+
+                    
+
+                    		vector<pair<int, int>> neighbors; // Definición de un vector de pares de números llamado neighbors;
+
+
+
+    				vector<pair<int, int>> directions = {{-1, 0}, {0, -1}, {0, 1}, {1, 0}};  // Definir los desplazamientos para los vecinos (en todas las direcciones).
+
+
+
+    				// Recorrer todas las direcciones para encontrar vecinos.
+
+    				
+
+   				 for (const auto& dir : directions) 
+
+    				{
+
+        				int newRow = row + dir.first;
+
+        
+
+        				int newCol = col + dir.second;
+
+
+
+        				// Verificar si la posición es válida y contiene un "1".
+
+        
+
+        				if (newRow >= 0 && newRow < matrix.size() && newCol >= 0 && newCol < matrix[0].size() && matrix[newRow][newCol] == 1) 
+
+        				{
+
+            					neighbors.push_back({newRow, newCol});
+
+        				}				
+
+    				}
+
+
+
+                    		for (const auto& neighbor : neighbors)
+
+                     		{
+
+                        		if (!visited[neighbor.first][neighbor.second]) 
+
+                        		{
+
+                        
+
+                            			cluster.push_back(make_tuple(matrixIndex, neighbor.first, neighbor.second));
+
+                            
+
+                            			visited[neighbor.first][neighbor.second] = true;
+
+                        		}
+
+                    		}
+
+                	}
+
+
+
+                	// Si el tamaño del cluster es mayor a 0, se agrega a la lista de clusters.
+
+                	
+
+                	if (cluster.size() > 0) 
+
+                	{
+
+                    		clusters.push_back(cluster);
+
+                	}
+
+            	}
+
+        	}
+
+    	}
+
+        
+
+        allClusters.push_back(clusters);
+
+    }
+
+  
+
+ 
+
+   /* ###################
+
+      IMPRIMIR RESULTADOS
+
+      ################### */
+
+   
+
+     for (int i = 0; i < allClusters.size(); ++i) 
+
+    {
+
+        cout << "Matriz " << i << ":" << endl;
+
+        
+
+        double cont_cluster = 0;
+
+        
+
+        double cont_total = 0;
+
+        
+
+        for (int j = 0; j < allClusters[i].size(); ++j)
+
+         {
+
+            cout << "  Cluster " << j + 1 << ":";
+
+            
+
+            
+
+            cont_cluster = cont_cluster +1;
+
+            
+
+            double cont_hit = 0;
+
+            
+
+            for (const auto& point : allClusters[i][j]) 
+
+            {
+
+                
+
+                cont_hit = cont_hit + 1;
+
+                
+
+                cout << " (" << get<1>(point) << ", " << get<2>(point) << ")" << ' ';
+
+                
+
+                
+
+            }
+
+            cout << "Número de hits: " << cont_hit << ' ';
+
+            
+
+            
+
+            cont_total = cont_total + cont_hit;
+
+            
+
+            cout << endl;
+
+        }
+
+        
+
+        cout << '\n';
+
+        
+
+        cout << "Valor medio del cluster en la cámara: " << ' ' << cont_total/cont_cluster ;
+
+        
+
+        cout << endl;
+
+    }
+
+    }
+
+    
+
+  
+
+  /* for(int ik=1; ik < NChambers; ik++) 
+
+   {
+
+      cout << " hits en la primera camara " << hit[0] << endl;
+
+   } */ 
+
+
+
+   return kTRUE; 
+
+} 
+
+
+
+void Prueba_Selector::SlaveTerminate()
+
+{
+
+   // The SlaveTerminate() function is called after all entries or objects
+
+   // have been processed. When running with PROOF SlaveTerminate() is called
+
+   // on each slave server.
+
+
+
+}
+
+
+
+void Prueba_Selector::Terminate()
+
+{
+
+   // The Terminate() function is the last function to be called during
+
+   // a query. It always runs on the client, it can be used to present
+
+   // the results graphically or save the results to file.
+
+
+
+}

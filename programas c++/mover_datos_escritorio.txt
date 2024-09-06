@@ -1,0 +1,63 @@
+#include <iostream>
+
+#include <string>
+
+#include <filesystem>
+
+
+
+using namespace std;
+
+namespace fs = std::filesystem;
+
+
+
+int main()
+
+{
+
+	for(int ik = 2; ik < 49; ik++)
+
+    	{
+
+    		string filename = "file" + to_string(ik) + ".csv";
+
+    		
+
+    		fs::path origen = "/home/franruiz/root/tfg/" + filename;
+
+    		
+
+    		fs::path destino = "/home/franruiz/Escritorio/" + filename;
+
+    	
+
+    		try 
+
+    		{
+
+            		fs::rename(origen, destino);
+
+            		
+
+            		cout << "Movido: " << origen << " a " << destino << endl;
+
+        	} 
+
+        	catch (fs::filesystem_error &e) 
+
+        	{
+
+            cerr << "Error moviendo " << origen << ": " << e.what() << endl;
+
+        	}
+
+    	}
+
+    
+
+    return 0;
+
+}
+
+    	

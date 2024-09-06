@@ -1,0 +1,236 @@
+#define traslado_datos_cxx
+
+
+
+#include "traslado_datos.h"
+
+#include <TMatrixD.h>
+
+#include <iostream>
+
+#include <vector>
+
+#include <TVectorD.h>
+
+#include <fstream>
+
+#include <string>
+
+
+
+using namespace std;
+
+
+
+// Definición de constantes
+
+const int granulation = 97; // Granulación de los pads.
+
+const int NChambers = 50;   // Número total de cámaras.
+
+const int max_nhit = 3000;  // Número máximo de hits.
+
+
+
+// Variables globales
+
+int NChamb_signal = 0;
+
+TVectorD hitk(NChambers);    // Vector de hits por cámara.
+
+TVectorD hitx(granulation);  // Vector de hits por x.
+
+TVectorD hity(granulation);  // Vector de hits por y.
+
+double nhitk;
+
+double nhitx;
+
+double nhity;
+
+
+
+void traslado_datos::Begin(TTree * /*tree*/)
+
+{
+
+    TString option = GetOption();
+
+}
+
+
+
+void traslado_datos::SlaveBegin(TTree * /*tree*/)
+
+{
+
+    TString option = GetOption();
+
+}
+
+
+
+Bool_t traslado_datos::Process(Long64_t entry)
+
+{
+
+
+
+    
+
+	
+
+    fReader.SetLocalEntry(entry);
+
+    	
+
+
+
+    /* ##############################
+
+     INICIALIZACION DE LAS MATRICES 
+
+     ############################## */
+
+
+
+    int event[NChambers][granulation][granulation] = {0};
+
+    
+
+    
+
+
+
+    /* #######################################################
+
+       CONSTRUCCION DE LAS MATRICES QUE REPRESENTAN LOS PLANOS
+
+       ####################################################### */
+
+
+
+    for (int hit = 0; hit < *Nhit; hit++)
+
+    {
+
+        int ik = DHCALEvent_K[hit];
+
+        int ii = DHCALEvent_I[hit];
+
+        int ij = DHCALEvent_J[hit];
+
+        
+
+        // Verificar que los índices estén dentro de los límites
+
+        if (ik >= 0 && ik < NChambers && ii >= 0 && ii < granulation && ij >= 0 && ij < granulation) 
+
+        {
+
+            event[ik][ii][ij] = 1;
+
+        } else 
+
+          {
+
+            cerr << "Índices fuera de límites: ik=" << ik << ", ii=" << ii << ", ij=" << ij << endl;
+
+          }
+
+    }
+
+    
+
+    /* ########################################
+
+      GUARDA LOS DATOS POR EVENTO Y POR MATRIZ
+
+      ######################################### */
+
+      
+
+    
+
+
+
+    for(int ik = 0; ik < NChambers; ik++)
+
+    {
+
+    	string filename = "file" + to_string(ik) + ".csv";
+
+    	
+
+    	ofstream file(filename, ios::app);
+
+    	
+
+    	if(file.is_open())
+
+    	{
+
+    		for (int ii = 0; ii < granulation; ii++)
+
+    		{
+
+        		for (int jj = 0; jj < granulation; jj++)
+
+        		{
+
+            			if (event[ik][ii][jj] == 1)
+
+            			{		
+
+                			file << ii << "," << jj << ";";
+
+            			}    
+
+        		}
+
+    		}
+
+    		file << "\n";	
+
+    		file.close(); 
+
+    	}
+
+    	else
+
+    	{
+
+    	cout << "Could not open the file" << filename << "of the event" << *eventNr << "for writing." << endl;
+
+    	}
+
+    }
+
+ 
+
+    return kTRUE;
+
+    
+
+    
+
+}
+
+
+
+void traslado_datos::SlaveTerminate()
+
+{
+
+}
+
+
+
+void traslado_datos::Terminate()
+
+{
+
+
+
+}
+
